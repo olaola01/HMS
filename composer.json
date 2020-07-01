@@ -1,0 +1,22 @@
+{
+  "name": "olamiposi/hospital",
+  "description": "composer json file",
+  "minimum-stability": "stable",
+  "type": "project",
+  "license": "DRI 1.0",
+  "authors": [
+    {
+      "name": "Olamiposi",
+      "email": "opolaiya@student.lautech.edu.ng"
+    }
+  ],
+  "require": {
+    "ext-pdo": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Src\\": "src/"
+    }
+  }
+}
