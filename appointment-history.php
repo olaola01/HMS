@@ -1,25 +1,27 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
-if(isset($_POST['submit']))
-{
-$sql=mysqli_query($con,"insert into doctorSpecilization(specilization) values('".$_POST['doctorspecilization']."')");
-$_SESSION['msg']="Doctor Specialization added successfully !!";
+include "vendor/autoload.php";
+include "src/initialize.php";
+
+use Src\helper\Error;
+use Src\models\Patient;
+use Src\helper\Notification;
+
+$id = $_GET['id'] ?? '';
+Error::require_user_login();
+$user_id = $user_session->get_session_id();
+$patient = Patient::find_by_id($user_id);
+
+if (isset($_GET['cancel'])){
+    $stmt = $connection->query("UPDATE appointment SET userStatus='0' WHERE id = '$id'");
+    Notification::message('Your appointment was canceled');
 }
 
-if(isset($_GET['del']))
-		  {
-		          mysqli_query($con,"delete from doctorSpecilization where id = '".$_GET['id']."'");
-                  $_SESSION['msg']="data deleted !!";
-		  }
+$i = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Admin | Doctor Specialization</title>
+		<title>User | Appointment History</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 		<meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,12 +44,12 @@ if(isset($_GET['del']))
 		<link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/patient/sidebar.php')?>
 			<div class="app-content">
-				
-						<?php include('include/header.php');?>
-					
+
+
+                <?php include (SHARED_PATH . '/patient/header.php')?>
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
 					<div class="wrap-content container" id="container">
@@ -55,14 +57,14 @@ if(isset($_GET['del']))
 						<section id="page-title">
 							<div class="row">
 								<div class="col-sm-8">
-									<h1 class="mainTitle">Admin | Add Doctor Specialization</h1>
+									<h1 class="mainTitle">User  | Appointment History</h1>
 																	</div>
 								<ol class="breadcrumb">
 									<li>
-										<span>Admin</span>
+										<span>User </span>
 									</li>
 									<li class="active">
-										<span>Add Doctor Specialization</span>
+										<span>Appointment History</span>
 									</li>
 								</ol>
 							</div>
@@ -70,82 +72,82 @@ if(isset($_GET['del']))
 						<!-- end: PAGE TITLE -->
 						<!-- start: BASIC EXAMPLE -->
 						<div class="container-fluid container-fullw bg-white">
-							<div class="row">
-								<div class="col-md-12">
-									
-									<div class="row margin-top-30">
-										<div class="col-lg-6 col-md-12">
-											<div class="panel panel-white">
-												<div class="panel-heading">
-													<h5 class="panel-title">Doctor Specialization</h5>
-												</div>
-												<div class="panel-body">
-								<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
-													<form role="form" name="dcotorspcl" method="post" >
-														<div class="form-group">
-															<label for="exampleInputEmail1">
-																Doctor Specialization
-															</label>
-							<input type="text" name="doctorspecilization" class="form-control"  placeholder="Enter Doctor Specialization">
-														</div>
-												
-														
-														
-														
-														<button type="submit" name="submit" class="btn btn-o btn-primary">
-															Submit
-														</button>
-													</form>
-												</div>
-											</div>
-										</div>
-											
-											</div>
-										</div>
-									<div class="col-lg-12 col-md-12">
-											<div class="panel panel-white">
-												
-												
-											</div>
-										</div>
-									</div>
+						
 
 									<div class="row">
 								<div class="col-md-12">
-									<h5 class="over-title margin-bottom-15">Manage <span class="text-bold">Docter Specialization</span></h5>
 									
+									<p style="color:red;"><?php echo Notification::display_message() //echo htmlentities($_SESSION['msg']);?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
 											<tr>
 												<th class="center">#</th>
+												<th class="hidden-xs">Doctor Name</th>
 												<th>Specialization</th>
-												<th class="hidden-xs">Creation Date</th>
-												<th>Updation Date</th>
+												<th>Consultancy Fee</th>
+												<th>Appointment Date / Time </th>
+												<th>Appointment Creation Date  </th>
+												<th>Current Status</th>
 												<th>Action</th>
 												
 											</tr>
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select * from doctorSpecilization");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+
+$stmt = "SELECT doctors.doctorName AS docname,appointment.* FROM appointment JOIN doctors ON doctors.id=appointment.doctorId WHERE appointment.userId='$user_id'";
+$stmt = $connection->query($stmt);
+while ($data = $stmt->fetch()) {
+    $id = $data['id'];
+    $docname = $data['docname'];
+    $special = $data['doctorSpecialization'];
+    $fees = $data['consultancyFees'];
+    $app = $data['appointmentDate'];
+    $time = $data['appointmentTime'];
+    $post = $data['postingDate'];
+    $user = $data['userStatus'];
+    $doctor = $data['doctorStatus'];
 ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['specilization'];?></td>
-												<td><?php echo $row['creationDate'];?></td>
-												<td><?php echo $row['updationDate'];?>
+												<td class="center"><?php echo $i++;?>.</td>
+												<td class="hidden-xs"><?php echo $docname;?></td>
+												<td><?php echo $special;?></td>
+												<td><?php echo $fees;?></td>
+												<td><?php echo $app;?> / <?php echo
+												 $time?>
 												</td>
-												
+												<td><?php echo $post;?></td>
+												<td>
+<?php if(($user == 1) && ($doctor == 1))
+{
+	echo "Active";
+}
+if(($user == 0) && ($doctor == 1))
+{
+	echo "Cancel by You";
+}
+
+if(($user == 1) && ($doctor ==0))
+{
+	echo "Cancel by Doctor";
+}
+
+
+
+												?></td>
 												<td >
 												<div class="visible-md visible-lg hidden-sm hidden-xs">
-							<a href="edit-doctor-specialization.php?id=<?php echo $row['id'];?>" class="btn btn-transparent btn-xs" tooltip-placement="top" tooltip="Edit"><i class="fa fa-pencil"></i></a>
+							<?php if(($user == 1) && ($doctor == 1))
+{ ?>
+
 													
-	<a href="doctor-specilization.php?id=<?php echo $row['id']?>&del=delete" onClick="return confirm('Are you sure you want to delete?')"class="btn btn-transparent btn-xs tooltips" tooltip-placement="top" tooltip="Remove"><i class="fa fa-times fa fa-white"></i></a>
+	<a href="appointment-history.php?id=<?php echo $id?>&cancel=update" onClick="return confirm('Are you sure you want to cancel this appointment ?')"class="btn btn-transparent btn-xs tooltips" title="Cancel Appointment" tooltip-placement="top" tooltip="Remove">Cancel</a>
+	<?php } else {
+
+		echo "Canceled";
+		} ?>
 												</div>
 												<div class="visible-xs visible-sm hidden-md hidden-lg">
 													<div class="btn-group" dropdown is-open="status.isopen">
@@ -174,7 +176,7 @@ while($row=mysqli_fetch_array($sql))
 											</tr>
 											
 											<?php 
-$cnt=$cnt+1;
+//$cnt=$cnt+1;
 											 }?>
 											
 											
@@ -183,8 +185,7 @@ $cnt=$cnt+1;
 								</div>
 							</div>
 								</div>
-							</div>
-						</div>
+						
 						<!-- end: BASIC EXAMPLE -->
 						<!-- end: SELECT BOXES -->
 						
@@ -192,11 +193,11 @@ $cnt=$cnt+1;
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-	<?php include('include/footer.php');?>
+            <?php include (SHARED_PATH . '/patient/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-	<?php include('include/setting.php');?>
+            <?php include (SHARED_PATH . '/patient/setting.php')?>
 			
 			<!-- end: SETTINGS -->
 		</div>

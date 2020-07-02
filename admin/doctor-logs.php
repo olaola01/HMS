@@ -1,9 +1,16 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+
+Error::require_admin_login();
+$admin_id = $user_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+$i = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,8 +71,8 @@ check_login();
 									<div class="row">
 								<div class="col-md-12">
 									
-									<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+									<p style="color:red;"><?php //echo htmlentities($_SESSION['msg']);?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
 											<tr>
@@ -82,23 +89,27 @@ check_login();
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select * from doctorslog ");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
-?>
+$stmt = "SELECT * FROM doctorslog";
+$stmt = $connection->query($stmt);
+while ($data = $stmt->fetch()) {
+    $uid = $data['uid'];
+    $username = $data['username'];
+    $userip = $data['userip'];
+    $loginTime = $data['loginTime'];
+    $logout = $data['logout'];
+    $status = $data['status']; ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['uid'];?></td>
-												<td class="hidden-xs"><?php echo $row['username'];?></td>
-												<td><?php echo $row['userip'];?></td>
-												<td><?php echo $row['loginTime'];?></td>
-												<td><?php echo $row['logout'];?>
+												<td class="center"><?php echo Path::h($i++);?>.</td>
+												<td class="hidden-xs"><?php echo Path::h($uid);?></td>
+												<td class="hidden-xs"><?php echo Path::h($username);?></td>
+												<td><?php echo Path::h($userip);?></td>
+												<td><?php echo Path::h($loginTime);?></td>
+												<td><?php echo Path::h($logout);?>
 												</td>
 												
 												<td>
-<?php if($row['status']==1)
+<?php if($status == 1)
 {
 	echo "Success";
 }

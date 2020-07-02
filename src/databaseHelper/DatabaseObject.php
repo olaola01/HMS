@@ -37,7 +37,7 @@ class DatabaseObject
         }
 
         $stmt->closeCursor();
-        $stmt->rowCount();
+//        $stmt->rowCount();
         return $object_array;
     }
 

@@ -1,26 +1,28 @@
 <?php
-session_start();
-error_reporting(0);
-include("include/config.php");
+
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Path;
+
 //Checking Details for reset password
-if(isset($_POST['submit'])){
-$contactno=$_POST['contactno'];
-$email=$_POST['email'];
-$query=mysqli_query($con,"select id from  doctors where contactno='$contactno' and docEmail='$email'");
-$row=mysqli_num_rows($query);
-if($row>0){
+if (Path::is_post_request()) {
+    $contactno = $_POST['contactno'];
+    $email = $_POST['email'];
+    $stmt = $connection->query("SELECT id FROM doctors WHERE contactno='$contactno' AND docEmail='$email''");
+    $result = $stmt->rowCount();
+    if ($result == 1) {
+        $_SESSION['cnumber'] = $contactno;
+        $_SESSION['email'] = $email;
+        Path::redirect_to(Path::url_for('doctor/reset-password.php'));
+        //header('location:reset-password.php');
+    } else {
+        echo "<script>alert('Invalid details. Please try with valid details');</script>";
+        echo "<script>window.location.href ='doctor/forgot-password.php'</script>";
 
-$_SESSION['cnumber']=$contactno;
-$_SESSION['email']=$email;
-header('location:reset-password.php');
-} else {
-echo "<script>alert('Invalid details. Please try with valid details');</script>";
-echo "<script>window.location.href ='forgot-password.php'</script>";
-
-
+    }
 }
 
-}
 ?>
 
 

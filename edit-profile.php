@@ -50,10 +50,10 @@ if (Path::is_post_request()){
 	</head>
 	<body>
 		<div id="app">
-            <?php include (SHARED_PATH . '/sidebar.php')?>
+            <?php include (SHARED_PATH . '/patient/sidebar.php')?>
 			<div class="app-content">
 
-                <?php include (SHARED_PATH . '/header.php')?>
+                <?php include (SHARED_PATH . '/patient/header.php')?>
 						
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
@@ -178,11 +178,11 @@ if (Path::is_post_request()){
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-            <?php include (SHARED_PATH . '/footer.php')?>
+            <?php include (SHARED_PATH . '/patient/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-            <?php include (SHARED_PATH . '/setting.php')?>
+            <?php include (SHARED_PATH . '/patient/setting.php')?>
 			
 			<!-- end: SETTINGS -->
 		</div>

@@ -1,14 +1,22 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-check_login();
-if(isset($_GET['cancel']))
-		  {
-		          mysqli_query($con,"update appointment set doctorStatus='0' where id = '".$_GET['id']."'");
-                  $_SESSION['msg']="Appointment canceled !!";
-		  }
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\models\Doctor;
+use Src\helper\Notification;
+
+$id = $_GET['id'] ?? '';
+Error::require_doctor_login();
+$doctor_id = $doctor_session->get_session_id();
+$doctor = Doctor::find_by_id($doctor_id);
+
+if (isset($_GET['cancel'])){
+    $stmt = $connection->query("UPDATE appointment SET doctorStatus='0' WHERE id = '$id'");
+    Notification::message('Appointment canceled');
+}
+
+$i = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,12 +44,12 @@ if(isset($_GET['cancel']))
 		<link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/doctor/sidebar.php')?>
 			<div class="app-content">
-				
 
-					<?php include('include/header.php');?>
+
+                <?php include (SHARED_PATH . '/doctor/header.php')?>
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
 					<div class="wrap-content container" id="container">
@@ -69,8 +77,8 @@ if(isset($_GET['cancel']))
 									<div class="row">
 								<div class="col-md-12">
 									
-									<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+									<p style="color:red;"><?php echo Notification::display_message()//echo htmlentities($_SESSION['msg']);?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
 											<tr>
@@ -87,32 +95,40 @@ if(isset($_GET['cancel']))
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select users.fullName as fname,appointment.*  from appointment join users on users.id=appointment.userId where appointment.doctorId='".$_SESSION['id']."'");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+$stmt = "SELECT users.fullName AS fname,appointment.* FROM appointment JOIN users ON users.id=appointment.userId WHERE appointment.doctorId='$doctor_id'";
+$stmt = $connection->query($stmt);
+while ($data = $stmt->fetch()) {
+    $id = $data['id'];
+    $fname = $data['fname'];
+    $special = $data['doctorSpecialization'];
+    $fees = $data['consultancyFees'];
+    $app = $data['appointmentDate'];
+    $time = $data['appointmentTime'];
+    $post = $data['postingDate'];
+    $user = $data['userStatus'];
+    $doctor = $data['doctorStatus'];
 ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['fname'];?></td>
-												<td><?php echo $row['doctorSpecialization'];?></td>
-												<td><?php echo $row['consultancyFees'];?></td>
-												<td><?php echo $row['appointmentDate'];?> / <?php echo
-												 $row['appointmentTime'];?>
+												<td class="center"><?php echo $i++;?>.</td>
+												<td class="hidden-xs"><?php echo $fname;?></td>
+												<td><?php echo $special;?></td>
+												<td><?php echo $fees;?></td>
+												<td><?php echo $app;?> / <?php echo
+												 $time;?>
 												</td>
-												<td><?php echo $row['postingDate'];?></td>
+												<td><?php echo $post;?></td>
 												<td>
-<?php if(($row['userStatus']==1) && ($row['doctorStatus']==1))  
+<?php if(($user == 1) && ($doctor == 1))
 {
 	echo "Active";
 }
-if(($row['userStatus']==0) && ($row['doctorStatus']==1))  
+if(($user ==0) && ($doctor ==1))
 {
 	echo "Cancel by Patient";
 }
 
-if(($row['userStatus']==1) && ($row['doctorStatus']==0))  
+if(($user == 1) && ($doctor == 0))
 {
 	echo "Cancel by you";
 }
@@ -122,11 +138,11 @@ if(($row['userStatus']==1) && ($row['doctorStatus']==0))
 												?></td>
 												<td >
 												<div class="visible-md visible-lg hidden-sm hidden-xs">
-							<?php if(($row['userStatus']==1) && ($row['doctorStatus']==1))  
+							<?php if(($user == 1) && ($doctor == 1))
 { ?>
 
 													
-	<a href="appointment-history.php?id=<?php echo $row['id']?>&cancel=update" onClick="return confirm('Are you sure you want to cancel this appointment ?')"class="btn btn-transparent btn-xs tooltips" title="Cancel Appointment" tooltip-placement="top" tooltip="Remove">Cancel</a>
+	<a href="appointment-history.php?id=<?php echo $id?>&cancel=update" onClick="return confirm('Are you sure you want to cancel this appointment ?')"class="btn btn-transparent btn-xs tooltips" title="Cancel Appointment" tooltip-placement="top" tooltip="Remove">Cancel</a>
 	<?php } else {
 
 		echo "Canceled";
@@ -135,11 +151,7 @@ if(($row['userStatus']==1) && ($row['doctorStatus']==0))
 												</td>
 											</tr>
 											
-											<?php 
-$cnt=$cnt+1;
-											 }?>
-											
-											
+											<?php }?>
 										</tbody>
 									</table>
 								</div>
@@ -153,11 +165,11 @@ $cnt=$cnt+1;
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-	<?php include('include/footer.php');?>
+            <?php include (SHARED_PATH . '/doctor/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-	<?php include('include/setting.php');?>
+            <?php include (SHARED_PATH . '/doctor/setting.php')?>
 			
 			<!-- end: SETTINGS -->
 		</div>

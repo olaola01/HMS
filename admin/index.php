@@ -1,30 +1,31 @@
 <?php
-session_start();
-error_reporting(0);
-include("include/config.php");
-if(isset($_POST['submit']))
-{
-$ret=mysqli_query($con,"SELECT * FROM admin WHERE username='".$_POST['username']."' and password='".$_POST['password']."'");
-$num=mysqli_fetch_array($ret);
-if($num>0)
-{
-$extra="dashboard.php";//
-$_SESSION['login']=$_POST['username'];
-$_SESSION['id']=$num['id'];
-$host=$_SERVER['HTTP_HOST'];
-$uri=rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-header("location:http://$host$uri/$extra");
-exit();
-}
-else
-{
-$_SESSION['errmsg']="Invalid username or password";
-$extra="index.php";
-$host  = $_SERVER['HTTP_HOST'];
-$uri  = rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-header("location:http://$host$uri/$extra");
-exit();
-}
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+
+use Src\helper\Error;
+use Src\helper\Path;
+use Src\models\Admin;
+
+$errors = '';
+Error::admin_allow_entry();
+if (Path::is_post_request()){
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    if (empty($errors)){
+        $admin = Admin::find_by_username($username);
+
+        if ($admin != false && $password == $admin->already_stored()){
+            $admin_session->store($admin);
+            $admin_id = $admin_session->get_session_id();
+            Path::redirect_to(Path::url_for('admin/dashboard.php?admin_id=' . $admin_id));
+        }else{
+            $errors = "Incorrect credentials";
+        }
+    }
+}else{
+    $admin = new Admin;
 }
 ?>
 
@@ -65,7 +66,7 @@ exit();
 							</legend>
 							<p>
 								Please enter your name and password to log in.<br />
-								<span style="color:red;"><?php echo htmlentities($_SESSION['errmsg']); ?><?php echo htmlentities($_SESSION['errmsg']="");?></span>
+								<span style="color:red;"><?php echo Error::customized_display_error($errors)//echo htmlentities($_SESSION['errmsg']); ?><?php //echo htmlentities($_SESSION['errmsg']="");?></span>
 							</p>
 							<div class="form-group">
 								<span class="input-icon">

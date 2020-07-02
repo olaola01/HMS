@@ -3,7 +3,7 @@ session_start();
 //error_reporting(0);
 include('include/config.php');
 include('include/checklogin.php');
-check_login();
+//check_login();
 
 //updating Admin Remark
 if(isset($_POST['update']))

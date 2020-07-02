@@ -7,26 +7,30 @@
  * 2020
  **/
 
+include "vendor/autoload.php";
+include "src/initialize.php";
 
-//include_once('hms/include/config.php');
-if (isset($_POST['submit'])) {
-    $name = $_POST['fullname'];
-    $email = $_POST['emailid'];
-    $mobileno = $_POST['mobileno'];
-    $dscrption = $_POST['description'];
-   // $query = mysqli_query($con, "insert into tblcontactus(fullname,email,contactno,message) value('$name','$email','$mobileno','$dscrption')");
-    echo "<script>alert('Your information succesfully submitted');</script>";
-    echo "<script>window.location.href ='contact.php'</script>";
+use Src\helper\Path;
+use Src\models\Contact;
+use Src\helper\Notification;
+use Src\helper\Error;
 
+if(Path::is_post_request()) {
+    $args = $_POST['Contact'];
+    $contact = new Contact($args);
+    $result = $contact->create();
+    if ($result){
+        Notification::message("Thank you for contacting us, A mail will be used to contact you");
+    }
+}else{
+    $contact = new Contact;
 }
-
-
 ?>
 <!DOCTYPE HTML>
-<html>
+<html lang="en">
 <head>
     <title>HMS | Contact us</title>
-    <link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+    <link href="home/css/style.css" rel="stylesheet" type="text/css" media="all"/>
     <link href='http://fonts.googleapis.com/css?family=Ropa+Sans' rel='stylesheet' type='text/css'>
 </head>
 <body>
@@ -72,23 +76,25 @@ if (isset($_POST['submit'])) {
             </div>
             <div class="col span_2_of_3">
                 <div class="contact-form">
+                    <?php echo Notification::display_message(); ?>
+                    <?php echo Error::display_errors($contact->errors);?>
                     <h2>Contact Us</h2>
-                    <form name="contactus" method="post">
+                    <form action="<?php echo Path::url_for("contact.php"); ?>" name="contactus" method="post">
                         <div>
                             <span><label>NAME</label></span>
-                            <span><input type="text" name="fullname" required="true" value=""></span>
+                            <span><input type="text" name="Contact[fullname]" required="true" value=""></span>
                         </div>
                         <div>
                             <span><label>E-MAIL</label></span>
-                            <span><input type="email" name="emailid" required="ture" value=""></span>
+                            <span><input type="email" name="Contact[email]" required="ture" value=""></span>
                         </div>
                         <div>
                             <span><label>MOBILE.NO</label></span>
-                            <span><input type="text" name="mobileno" required="true" value=""></span>
+                            <span><input type="text" name="Contact[contactno]" required="true" value=""></span>
                         </div>
                         <div>
                             <span><label>Description</label></span>
-                            <span><textarea name="description" required="true"> </textarea></span>
+                            <span><textarea name="Contact[message]" required="true"> </textarea></span>
                         </div>
                         <div>
                             <span><input type="submit" name="submit" value="Submit"></span>

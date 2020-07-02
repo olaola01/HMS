@@ -1,5 +1,4 @@
-<?php 
-//require_once("include/config.php");
+<?php
 use Src\models\Patient;
 
 include "vendor/autoload.php";

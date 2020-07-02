@@ -73,8 +73,7 @@ if(Path::is_post_request()){
 				</div>
 
 				<div class="box-login">
-                    <?php echo Error::customized_display_error($errors) ?>
-                    <?php echo \Src\helper\Notification::display_message(); ?>
+
 					<form class="form-login" action="<?php echo Path::url_for('user-login.php');?>" method="post">
 						<fieldset>
 							<legend>
@@ -82,7 +81,8 @@ if(Path::is_post_request()){
 							</legend>
 							<p>
 								Please enter your name and password to log in.<br />
-								<span style="color:red;"><?php// echo $_SESSION['errmsg']; ?><?php //echo $_SESSION['errmsg']="";?></span>
+								<span style="color:red;"><?php echo Error::customized_display_error($errors) ?>
+                                    <?php echo \Src\helper\Notification::display_message(); ?></span>
 							</p>
 							<div class="form-group">
 								<span class="input-icon">

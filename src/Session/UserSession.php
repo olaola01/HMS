@@ -12,7 +12,6 @@ namespace Src\Session;
 
 
 use Src\databaseHelper\DatabaseObject;
-use Src\models\Userlog;
 
 class UserSession extends DatabaseObject
 {

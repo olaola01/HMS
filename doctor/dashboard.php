@@ -1,10 +1,13 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
+use Src\models\Doctor;
+use Src\helper\Error;
+
+Error::require_doctor_login();
+$doctor_id = $doctor_session->get_session_id();
+$doctor = Doctor::find_by_id($doctor_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,10 +38,10 @@ check_login();
 	</head>
 	<body>
 		<div id="app">		
-<?php include('include/sidebar.php');?>
+<?php include (SHARED_PATH . '/doctor/sidebar.php') ?>
 			<div class="app-content">
-				
-						<?php include('include/header.php');?>
+
+                <?php include (SHARED_PATH . '/doctor/header.php')?>
 						
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
@@ -47,8 +50,7 @@ check_login();
 						<section id="page-title">
 							<div class="row">
 								<div class="col-sm-8">
-									<h1 class="mainTitle">Doctor | Dashboard</h1>
-																	</div>
+									<h1 class="mainTitle">Doctor | Dashboard</div>
 								<ol class="breadcrumb">
 									<li>
 										<span>User</span>
@@ -106,11 +108,11 @@ check_login();
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-	<?php include('include/footer.php');?>
+            <?php include (SHARED_PATH . '/doctor/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-	<?php include('include/setting.php');?>
+            <?php include (SHARED_PATH . '/doctor/setting.php')?>
 			<>
 			<!-- end: SETTINGS -->
 		</div>

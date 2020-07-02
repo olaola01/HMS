@@ -1,10 +1,21 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\models\Patient;
+use Src\models\Doctor;
+use Src\models\BookAppointment;
+use Src\helper\Path;
+
+Error::require_admin_login();
+$admin_id = $user_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+$patient = Patient::count_all();
+$doctor = Doctor::count_all();
+$bk = BookAppointment::count_all();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,11 +45,11 @@ check_login();
 
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/admin/sidebar.php')?>
 			<div class="app-content">
-				
-						<?php include('include/header.php');?>
+
+                <?php include (SHARED_PATH . '/admin/header.php')?>
 						
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
@@ -71,11 +82,11 @@ check_login();
 											
 											<p class="links cl-effect-1">
 												<a href="manage-users.php">
-												<?php $result = mysqli_query($con,"SELECT * FROM users ");
-$num_rows = mysqli_num_rows($result);
-{
+												<?php //$result = mysqli_query($con,"SELECT * FROM users ");
+//$num_rows = mysqli_num_rows($result);
+//{
 ?>
-											Total Patients :<?php echo htmlentities($num_rows);  } ?>		
+											Total Patients :<?php echo Path::h($patient);//echo htmlentities($num_rows);  } ?>
 												</a>
 											</p>
 										</div>
@@ -89,11 +100,11 @@ $num_rows = mysqli_num_rows($result);
 										
 											<p class="cl-effect-1">
 												<a href="manage-doctors.php">
-												<?php $result1 = mysqli_query($con,"SELECT * FROM doctors ");
-$num_rows1 = mysqli_num_rows($result1);
-{
+												<?php //$result1 = mysqli_query($con,"SELECT * FROM doctors ");
+//$num_rows1 = mysqli_num_rows($result1);
+//{
 ?>
-											Total Doctors :<?php echo htmlentities($num_rows1);  } ?>		
+											Total Doctors :<?php echo Path::h($doctor); //echo htmlentities($num_rows1);  } ?>
 												</a>
 												
 											</p>
@@ -109,11 +120,11 @@ $num_rows1 = mysqli_num_rows($result1);
 											<p class="links cl-effect-1">
 												<a href="book-appointment.php">
 													<a href="appointment-history.php">
-												<?php $sql= mysqli_query($con,"SELECT * FROM appointment");
-$num_rows2 = mysqli_num_rows($sql);
-{
+												<?php //$sql= // mysqli_query($con,"SELECT * FROM appointment");
+//$num_rows2 = mysqli_num_rows($sql);
+//{
 ?>
-											Total Appointments :<?php echo htmlentities($num_rows2);  } ?>	
+											Total Appointments :<?php echo $bk;//echo htmlentities($num_rows2);  } ?>
 												</a>
 												</a>
 											</p>
@@ -130,15 +141,15 @@ $num_rows2 = mysqli_num_rows($sql);
 											<h2 class="StepTitle"> New Queries</h2>
 											
 											<p class="links cl-effect-1">
-												<a href="book-appointment.php">
+<!--												<a href="book-appointment.php">-->
 													<a href="unread-queries.php">
 												<?php 
-$sql= mysqli_query($con,"SELECT * FROM tblcontactus where  IsRead is null");
-$num_rows22 = mysqli_num_rows($sql);
+$sql= $connection->query("SELECT * FROM tblcontactus WHERE IsRead is null");
+$contact = $sql->rowCount()
 ?>
-											Total New Queries :<?php echo htmlentities($num_rows22);   ?>	
+											Total New Queries :<?php echo $contact;// echo htmlentities($num_rows22);   ?>
 												</a>
-												</a>
+<!--												</a>-->
 											</p>
 										</div>
 									</div>
@@ -160,11 +171,11 @@ $num_rows22 = mysqli_num_rows($sql);
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-	<?php include('include/footer.php');?>
+            <?php include (SHARED_PATH . '/admin/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-	<?php include('include/setting.php');?>
+            <?php include (SHARED_PATH . '/admin/setting.php')?>
 			<>
 			<!-- end: SETTINGS -->
 		</div>

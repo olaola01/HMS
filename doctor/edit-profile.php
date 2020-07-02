@@ -1,28 +1,30 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-if(isset($_POST['submit']))
-{
-	$docspecialization=$_POST['Doctorspecialization'];
-$docname=$_POST['docname'];
-$docaddress=$_POST['clinicaddress'];
-$docfees=$_POST['docfees'];
-$doccontactno=$_POST['doccontact'];
-$docemail=$_POST['docemail'];
-$sql=mysqli_query($con,"Update doctors set specilization='$docspecialization',doctorName='$docname',address='$docaddress',docFees='$docfees',contactno='$doccontactno' where id='".$_SESSION['id']."'");
-if($sql)
-{
-echo "<script>alert('Doctor Details updated Successfully');</script>";
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
-}
+use Src\helper\Error;
+use Src\models\Doctor;
+use Src\helper\Path;
+use Src\helper\Notification;
+
+Error::require_doctor_login();
+$doctor_id = $doctor_session->get_session_id();
+$doctor = Doctor::find_by_id($doctor_id);
+
+if (Path::is_post_request()){
+    $args = $_POST['Doctor'];
+    $doctor->merge_attributes($args);
+    $result = $doctor->save();
+    if ($result){
+        $doctor_session->message("Profile has been updated successfully");
+        Path::redirect_to(Path::url_for('doctor/edit-profile.php'));
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Doctr | Edit Doctor Details</title>
+		<title>Doctor | Edit Doctor Details</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 		<meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,10 +49,10 @@ echo "<script>alert('Doctor Details updated Successfully');</script>";
 
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/doctor/sidebar.php')?>
 			<div class="app-content">
-				<?php include('include/header.php');?>
+                <?php include (SHARED_PATH . '/doctor/header.php')?>
 				<div class="main-content" >
 					<div class="wrap-content container" id="container">
 						<!-- start: PAGE TITLE -->
@@ -74,7 +76,8 @@ echo "<script>alert('Doctor Details updated Successfully');</script>";
 						<div class="container-fluid container-fullw bg-white">
 							<div class="row">
 								<div class="col-md-12">
-									
+                                    <h5 style="color: green; font-size:18px; ">
+                                    <?php  echo Notification::display_message();?> </h5>
 									<div class="row margin-top-30">
 										<div class="col-lg-8 col-md-12">
 											<div class="panel panel-white">
@@ -82,33 +85,31 @@ echo "<script>alert('Doctor Details updated Successfully');</script>";
 													<h5 class="panel-title">Edit Doctor</h5>
 												</div>
 												<div class="panel-body">
-									<?php $sql=mysqli_query($con,"select * from doctors where docEmail='".$_SESSION['dlogin']."'");
-while($data=mysqli_fetch_array($sql))
-{
-?>
-<h4><?php echo htmlentities($data['doctorName']);?>'s Profile</h4>
-<p><b>Profile Reg. Date: </b><?php echo htmlentities($data['creationDate']);?></p>
-<?php if($data['updationDate']){?>
-<p><b>Profile Last Updation Date: </b><?php echo htmlentities($data['updationDate']);?></p>
+<h4><?php echo Path::h($doctor->doctorName);?>'s Profile</h4>
+<p><b>Profile Reg. Date: </b><?php echo Path::h($doctor->creationDate);//htmlentities($data['creationDate']);?></p>
+<?php if($doctor->updationDate){?>
+<p><b>Profile Last Updation Date: </b><?php echo Path::h($doctor->updationDate);?></p>
 <?php } ?>
 <hr />
-													<form role="form" name="adddoc" method="post" onSubmit="return valid();">
+													<form role="form" action="" name="adddoc" method="post" onSubmit="return valid();">
 														<div class="form-group">
 															<label for="DoctorSpecialization">
 																Doctor Specialization
 															</label>
-							<select name="Doctorspecialization" class="form-control" required="required">
-					<option value="<?php echo htmlentities($data['specilization']);?>">
-					<?php echo htmlentities($data['specilization']);?></option>
-<?php $ret=mysqli_query($con,"select * from doctorspecilization");
-while($row=mysqli_fetch_array($ret))
-{
+							<select name="Doctor[specilization]" class="form-control" required="required">
+					<option value="<?php echo Path::h($doctor->specilization);?>">
+					<?php echo Path::h($doctor->specilization);?></option>
+<?php $stmt = $connection->query("select * from doctorspecilization");
+//$row = $stmt->fetch(PDO::FETCH_ASSOC);
+while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+$specilization = $data['specilization'];
+
 ?>
-																<option value="<?php echo htmlentities($row['specilization']);?>">
-																	<?php echo htmlentities($row['specilization']);?>
+																<option value="<?php echo Path::h($specilization); ?>">
+																	<?php echo Path::h($specilization);?>
 																</option>
 																<?php } ?>
-																
+
 															</select>
 														</div>
 
@@ -116,7 +117,7 @@ while($row=mysqli_fetch_array($ret))
 															<label for="doctorname">
 																 Doctor Name
 															</label>
-	<input type="text" name="docname" class="form-control" value="<?php echo htmlentities($data['doctorName']);?>" >
+	<input type="text" name="Doctor[doctorName]" class="form-control" value="<?php echo Path::h($doctor->doctorName); ?>" >
 														</div>
 
 
@@ -124,33 +125,33 @@ while($row=mysqli_fetch_array($ret))
 															<label for="address">
 																 Doctor Clinic Address
 															</label>
-					<textarea name="clinicaddress" class="form-control"><?php echo htmlentities($data['address']);?></textarea>
+					<textarea name="Doctor[address]" class="form-control"><?php echo Path::h($doctor->address);?></textarea>
 														</div>
 <div class="form-group">
 															<label for="fess">
 																 Doctor Consultancy Fees
 															</label>
-		<input type="text" name="docfees" class="form-control" required="required"  value="<?php echo htmlentities($data['docFees']);?>" >
+		<input type="text" name="Doctor[docFees]" class="form-control" required="required"  value="<?php echo Path::h($doctor->docFees);?>" >
 														</div>
 	
 <div class="form-group">
 									<label for="fess">
 																 Doctor Contact no
 															</label>
-					<input type="text" name="doccontact" class="form-control" required="required"  value="<?php echo htmlentities($data['contactno']);?>">
+					<input type="text" name="Doctor[contactno]" class="form-control" required="required"  value="<?php echo Path::h($doctor->contactno);?>">
 														</div>
 
 <div class="form-group">
 									<label for="fess">
 																 Doctor Email
 															</label>
-					<input type="email" name="docemail" class="form-control"  readonly="readonly"  value="<?php echo htmlentities($data['docEmail']);?>">
+					<input type="email" name="Doctor[docEmail]" class="form-control"  readonly="readonly"  value="<?php echo Path::h($doctor->docEmail);?>">
 														</div>
 
 
 
 														
-														<?php } ?>
+														<?php //} ?>
 														
 														
 														<button type="submit" name="submit" class="btn btn-o btn-primary">
@@ -179,11 +180,11 @@ while($row=mysqli_fetch_array($ret))
 				</div>
 			</div>
 			<!-- start: FOOTER -->
-	<?php include('include/footer.php');?>
+                <?php include (SHARED_PATH . '/doctor/footer.php')?>
 			<!-- end: FOOTER -->
 		
 			<!-- start: SETTINGS -->
-	<?php include('include/setting.php');?>
+                <?php include (SHARED_PATH . '/doctor/setting.php')?>
 			<>
 			<!-- end: SETTINGS -->
 		</div>

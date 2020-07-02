@@ -8,8 +8,9 @@
 
 use Src\databaseHelper\DatabaseObject;
 use Src\databaseHelper\DatabaseUtils;
-//use Src\Session\AdminSession;
+use Src\Session\DoctorSession;
 use Src\Session\UserSession;
+use Src\Session\AdminSession;
 
 
 ob_start();
@@ -27,3 +28,5 @@ $connection = DatabaseUtils::database_connection();
 DatabaseObject::set_database($connection);
 //StringUtils::set_database($connection);
 $user_session = new UserSession();
+$doctor_session = new DoctorSession();
+$admin_session = new AdminSession();

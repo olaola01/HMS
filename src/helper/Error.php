@@ -55,6 +55,24 @@ class Error
         }
     }
 
+    public static function require_doctor_login(){
+        global $doctor_session;
+        if(!$doctor_session->is_logged_in()) {
+            Path::redirect_to(Path::url_for('doctor/index.php'));
+        } else {
+            // Do nothing, let the rest of the page proceed
+        }
+    }
+
+    public static function require_admin_login(){
+        global $admin_session;
+        if(!$admin_session->is_logged_in()) {
+            Path::redirect_to(Path::url_for('admin/index.php'));
+        } else {
+            // Do nothing, let the rest of the page proceed
+        }
+    }
+
     public static function allow_entry(){
         global $user_session;
         if($user_session->is_logged_in()) {
@@ -64,5 +82,22 @@ class Error
         }
     }
 
+    public static function doctor_allow_entry(){
+        global $doctor_session;
+        if($doctor_session->is_logged_in()) {
+            Path::redirect_to(Path::url_for('doctor/dashboard.php'));
+        } else {
+            // Do nothing, let the rest of the page proceed
+        }
+    }
+
+    public static function admin_allow_entry(){
+        global $admin_session;
+        if($admin_session->is_logged_in()) {
+            Path::redirect_to(Path::url_for('admin/dashboard.php'));
+        } else {
+            // Do nothing, let the rest of the page proceed
+        }
+    }
 
 }

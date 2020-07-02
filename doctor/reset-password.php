@@ -1,25 +1,29 @@
 <?php
-session_start();
-//error_reporting(0);
-include("include/config.php");
-// Code for updating Password
-if(isset($_POST['change']))
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\helper\Path;
+use Src\helper\Notification;
+
+$error = '';
+if(Path::is_post_request())
 {
-$cno=$_SESSION['cnumber'];
-$email=$_SESSION['email'];
-$newpassword=md5($_POST['password']);
-$query=mysqli_query($con,"update doctors set password='$newpassword' where contactno='$cno' and docEmail='$email'");
-if ($query) {
-echo "<script>alert('Password successfully updated.');</script>";
-echo "<script>window.location.href ='index.php'</script>";
-}
+    $cno = $_SESSION['cnumber'];
+    $email= $_SESSION['email'];
+    $newpassword = $_POST['password'];
+    $newpassword = md5($newpassword);
+    $stmt = $connection->prepare("UPDATE users SET password='$newpassword' WHERE contactno='$cno' and docEmail='$email'");
+    if ($stmt->execute()){
+        Notification::message('Password successfully updated.');
+        echo "<script>alert('Password successfully updated.');</script>";
+        echo "<script>window.location.href ='doctor/index.php'</script>";
+    }else{
+        $error = "Password Update failed";
+    }
 
 }
-
-
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -44,7 +48,7 @@ echo "<script>window.location.href ='index.php'</script>";
 				<script type="text/javascript">
 function valid()
 {
- if(document.passwordreset.password.value!= document.passwordreset.password_again.value)
+ if(document.passwordreset.password.value!== document.passwordreset.password_again.value)
 {
 alert("Password and Confirm Password Field do not match  !!");
 document.passwordreset.password_again.focus();
@@ -69,7 +73,7 @@ return true;
 							</legend>
 							<p>
 								Please set your new password.<br />
-								<span style="color:red;"><?php echo $_SESSION['errmsg']; ?><?php echo $_SESSION['errmsg']="";?></span>
+								<span style="color:red;"><?php echo Error::customized_display_error($error); //echo $_SESSION['errmsg']; ?><?php //echo $_SESSION['errmsg']="";?></span>
 							</p>
 
 <div class="form-group">
