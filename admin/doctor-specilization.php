@@ -1,20 +1,47 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
-if(isset($_POST['submit']))
-{
-$sql=mysqli_query($con,"insert into doctorSpecilization(specilization) values('".$_POST['doctorspecilization']."')");
-$_SESSION['msg']="Doctor Specialization added successfully !!";
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+use Src\models\Specialization;
+use Src\helper\Notification;
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+if(Path::is_post_request()){
+    $args = $_POST['Specialization'] ?? '';
+    $specialization = new Specialization($args);
+
+    if ($specialization->already_exists($specialization->specilization)){
+        $specialization->errors[] = "Specialization exists";
+    }else{
+        $result = $specialization->save();
+        if ($result){
+            $specialization_id = $specialization->id;
+            Notification::message('Specialization has been added successfully');
+            Path::redirect_to(Path::url_for('admin/doctor-specilization.php?specialization_id=' . $specialization_id));
+        }
+
+    }
+}else {
+    $specilization = new Specialization;
 }
 
-if(isset($_GET['del']))
-		  {
-		          mysqli_query($con,"delete from doctorSpecilization where id = '".$_GET['id']."'");
-                  $_SESSION['msg']="data deleted !!";
-		  }
+$specilization = Specialization::find_all();
+$i = 1;
+
+if (isset($_GET['del'])){
+    $delete_id = $_GET['del'];
+    $special =  Specialization::find_by_id($delete_id);
+    $special->delete();
+    Notification::message('Deleted Successfully');
+    Path::redirect_to(Path::url_for('/admin/doctor-specilization.php'));
+
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -80,14 +107,14 @@ if(isset($_GET['del']))
 													<h5 class="panel-title">Doctor Specialization</h5>
 												</div>
 												<div class="panel-body">
-								<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+								<p style="color:red;"><?php echo Error::display_errors($specialization->errors);?><?php echo Notification::display_message();?>
+								</p>
 													<form role="form" name="dcotorspcl" method="post" >
 														<div class="form-group">
 															<label for="exampleInputEmail1">
 																Doctor Specialization
 															</label>
-							<input type="text" name="doctorspecilization" class="form-control"  placeholder="Enter Doctor Specialization">
+							<input type="text" name="Specialization[specilization]" class="form-control"  placeholder="Enter Doctor Specialization">
 														</div>
 												
 														
@@ -113,7 +140,7 @@ if(isset($_GET['del']))
 
 									<div class="row">
 								<div class="col-md-12">
-									<h5 class="over-title margin-bottom-15">Manage <span class="text-bold">Docter Specialization</span></h5>
+									<h5 class="over-title margin-bottom-15">Manage <span class="text-bold">Doctor Specialization</span></h5>
 									
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
@@ -128,24 +155,21 @@ if(isset($_GET['del']))
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select * from doctorSpecilization");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
-?>
+
+foreach ($specilization as $special) { ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['specilization'];?></td>
-												<td><?php echo $row['creationDate'];?></td>
-												<td><?php echo $row['updationDate'];?>
+												<td class="center"><?php echo $i++;?>.</td>
+												<td class="hidden-xs"><?php echo $special->specilization;?></td>
+												<td><?php echo $special->creationDate;?></td>
+												<td><?php echo $special->updationDate;?>
 												</td>
-												
+
 												<td >
 												<div class="visible-md visible-lg hidden-sm hidden-xs">
-							<a href="edit-doctor-specialization.php?id=<?php echo $row['id'];?>" class="btn btn-transparent btn-xs" tooltip-placement="top" tooltip="Edit"><i class="fa fa-pencil"></i></a>
+							<a href="<?php echo Path::url_for("admin/edit-doctor-specialization.php?id=" . Path::h(Path::u($special->id)));?>" class="btn btn-transparent btn-xs" tooltip-placement="top" tooltip="Edit"><i class="fa fa-pencil"></i></a>
 													
-	<a href="doctor-specilization.php?id=<?php echo $row['id']?>&del=delete" onClick="return confirm('Are you sure you want to delete?')"class="btn btn-transparent btn-xs tooltips" tooltip-placement="top" tooltip="Remove"><i class="fa fa-times fa fa-white"></i></a>
+	<a href="?del=<?php echo Path::h(Path::u($special->id));?>" onClick="return confirm('Are you sure you want to delete?')"class="btn btn-transparent btn-xs tooltips" tooltip-placement="top" tooltip="Remove"><i class="fa fa-times fa fa-white"></i></a>
 												</div>
 												<div class="visible-xs visible-sm hidden-md hidden-lg">
 													<div class="btn-group" dropdown is-open="status.isopen">
@@ -174,7 +198,7 @@ while($row=mysqli_fetch_array($sql))
 											</tr>
 											
 											<?php 
-$cnt=$cnt+1;
+//$cnt=$cnt+1;
 											 }?>
 											
 											

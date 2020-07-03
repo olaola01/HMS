@@ -1,16 +1,28 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
-$id=intval($_GET['id']);// get value
-if(isset($_POST['submit']))
-{
-$docspecialization=$_POST['doctorspecilization'];
-$sql=mysqli_query($con,"update  doctorSpecilization set specilization='$docspecialization' where id='$id'");
-$_SESSION['msg']="Doctor Specialization updated successfully !!";
-} 
+
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\helper\Path;
+use Src\models\Specialization;
+use Src\helper\Notification;
+
+$id = $_GET['id'] ?? Path::redirect_to(Path::url_for('/admin/doctor-specilization.php'));
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$special = Specialization::find_by_id($id);
+
+if (Path::is_post_request()){
+    $args = $_POST['Specialization'];
+    $special->merge_attributes($args);
+    $result = $special->save();
+    if ($result){
+        $admin_session->message("Doctor Specialization has been updated successfully");
+        Path::redirect_to(Path::url_for('admin/edit-doctor-specialization.php'));
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -77,22 +89,16 @@ $_SESSION['msg']="Doctor Specialization updated successfully !!";
 													<h5 class="panel-title">Edit Doctor Specialization</h5>
 												</div>
 												<div class="panel-body">
-								<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+								<p style="color:red;"><?php echo Notification::display_message()//echo htmlentities($_SESSION['msg']);?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 													<form role="form" name="dcotorspcl" method="post" >
 														<div class="form-group">
 															<label for="exampleInputEmail1">
 																Edit Doctor Specialization
 															</label>
 
-	<?php 
-
-$id=intval($_GET['id']);
-	$sql=mysqli_query($con,"select * from doctorSpecilization where id='$id'");
-while($row=mysqli_fetch_array($sql))
-{														
-	?>		<input type="text" name="doctorspecilization" class="form-control" value="<?php echo $row['specilization'];?>" >
-	<?php } ?>
+	<?php
+	?>		<input type="text" name="Specialization[specilization]" class="form-control" value="<?php echo Path::h($special->specilization);?>" >
 														</div>
 												
 														

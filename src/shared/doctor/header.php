@@ -32,11 +32,11 @@
 
 
 
-									<?php $query=mysqli_query($con,"select fullName from users where id='".$_SESSION['id']."'");
-while($row=mysqli_fetch_array($query))
-{
-	echo $row['fullName'];
-}
+									<?php //$query=mysqli_query($con,"select fullName from users where id='".$_SESSION['id']."'");
+//while($row=mysqli_fetch_array($query))
+//{
+	echo $doctor->fullName;
+//}
 									?> <i class="ti-angle-down"></i></i></span>
 								</a>
 								<ul class="dropdown-menu dropdown-dark">

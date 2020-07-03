@@ -1,16 +1,26 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
-if(isset($_GET['del']))
-		  {
-		          mysqli_query($con,"delete from users where id = '".$_GET['id']."'");
-                  $_SESSION['msg']="data deleted !!";
-		  }
-?>
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+use Src\models\Patient;
+use Src\helper\Notification;
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+if (isset($_GET['del'])) {
+    $delete_id = $_GET['del'];
+    $patient = Patient::find_by_id($delete_id);
+    $patient->delete();
+    Notification::message('Deleted Successfully');
+    Path::redirect_to(Path::url_for('/admin/manage-users.php'));
+
+}
+$i = 1;?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -70,8 +80,8 @@ if(isset($_GET['del']))
 									<div class="row">
 								<div class="col-md-12">
 									<h5 class="over-title margin-bottom-15">Manage <span class="text-bold">Patients</span></h5>
-									<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+									<p style="color:red;"><?php  echo Notification::display_message();?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
 											<tr>
@@ -89,28 +99,26 @@ if(isset($_GET['del']))
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select * from users");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+$patient = Patient::find_all();
+foreach ($patient as $pat) {
 ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['fullName'];?></td>
-												<td><?php echo $row['address'];?></td>
-												<td><?php echo $row['city'];?>
+												<td class="center"><?php echo $i++;?>.</td>
+												<td class="hidden-xs"><?php echo Path::h($pat->fullName);?></td>
+												<td><?php echo Path::h($pat->address);?></td>
+												<td><?php echo Path::h($pat->city);?>
 												</td>
-												<td><?php echo $row['gender'];?></td>
-												<td><?php echo $row['email'];?></td>
-												<td><?php echo $row['regDate'];?></td>
-												<td><?php echo $row['updationDate'];?>
+												<td><?php echo Path::h($pat->gender);?></td>
+												<td><?php echo Path::h($pat->email);?></td>
+												<td><?php echo Path::h($pat->regDate);?></td>
+												<td><?php echo Path::h($pat->updationDate);?>
 												</td>
 												<td >
 												<div class="visible-md visible-lg hidden-sm hidden-xs">
-							
-													
-	<a href="manage-users.php?id=<?php echo $row['id']?>&del=delete" onClick="return confirm('Are you sure you want to delete?')"class="btn btn-transparent btn-xs tooltips" tooltip-placement="top" tooltip="Remove"><i class="fa fa-times fa fa-white"></i></a>
+
+                                                    <a href="?del=<?php echo Path::h(Path::u($pat->id));?>" onClick="return confirm('Are you sure you want to delete?')"class="btn btn-transparent btn-xs tooltips" tooltip-placement="top" tooltip="Remove"><i class="fa fa-times fa fa-white"></i></a>
+
 												</div>
 												<div class="visible-xs visible-sm hidden-md hidden-lg">
 													<div class="btn-group" dropdown is-open="status.isopen">
@@ -139,7 +147,7 @@ while($row=mysqli_fetch_array($sql))
 											</tr>
 											
 											<?php 
-$cnt=$cnt+1;
+//$cnt=$cnt+1;
 											 }?>
 											
 											

@@ -24,6 +24,9 @@ class Contact extends DatabaseObject
     public $email;
     public $contactno;
     public $message;
+    public $AdminRemark;
+    public $IsRead;
+    public $LastupdationDate;
 
     public function __construct($args=[])
     {

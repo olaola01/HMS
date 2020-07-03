@@ -7,8 +7,8 @@ include "../src/initialize.php";
 $doctor = new Doctor;
 
 if (!empty($_POST['emailid'])) {
-	$email = $_POST['emailid'];
-	$check = $doctor->is_email_exists($email);
+	$docEmail = $_POST['emailid'];
+	$check = $doctor->is_email_exists($docEmail);
 	if ($check) {
 		echo "<span style='color:red'> Email already exists .</span>";
 		echo "<script>$('#submit').prop('disabled',true);</script>";

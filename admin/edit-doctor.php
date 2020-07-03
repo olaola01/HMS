@@ -1,24 +1,26 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
-$did=intval($_GET['id']);// get doctor id
-if(isset($_POST['submit']))
-{
-	$docspecialization=$_POST['Doctorspecialization'];
-$docname=$_POST['docname'];
-$docaddress=$_POST['clinicaddress'];
-$docfees=$_POST['docfees'];
-$doccontactno=$_POST['doccontact'];
-$docemail=$_POST['docemail'];
-$sql=mysqli_query($con,"Update doctors set specilization='$docspecialization',doctorName='$docname',address='$docaddress',docFees='$docfees',contactno='$doccontactno',docEmail='$docemail' where id='$did'");
-if($sql)
-{
-$msg="Doctor Details updated Successfully";
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
-}
+use Src\helper\Error;
+use Src\helper\Path;
+use Src\models\Doctor;
+
+
+$id = $_GET['id'] ?? Path::redirect_to(Path::url_for('/admin/manage-doctors.php'));
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$doc = Doctor::find_by_id($id);
+
+if (Path::is_post_request()){
+    $args = $_POST['Doctor'];
+    $doc->merge_attributes($args);
+    $result = $doc->save();
+    if ($result){
+        $admin_session->message("Doctor Specialization has been updated successfully");
+        Path::redirect_to(Path::url_for('admin/edit-doctor.php'));
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -81,7 +83,7 @@ $msg="Doctor Details updated Successfully";
 							<div class="row">
 								<div class="col-md-12">
 									<h5 style="color: green; font-size:18px; ">
-<?php if($msg) { echo htmlentities($msg);}?> </h5>
+<?php //if($msg) { echo htmlentities($msg);}?> </h5>
 									<div class="row margin-top-30">
 										<div class="col-lg-8 col-md-12">
 											<div class="panel panel-white">
@@ -89,30 +91,33 @@ $msg="Doctor Details updated Successfully";
 													<h5 class="panel-title">Edit Doctor info</h5>
 												</div>
 												<div class="panel-body">
-									<?php $sql=mysqli_query($con,"select * from doctors where id='$did'");
-while($data=mysqli_fetch_array($sql))
-{
+									<?php //$sql=mysqli_query($con,"select * from doctors where id='$did'");
+//while($data=mysqli_fetch_array($sql))
+
+
 ?>
-<h4><?php echo htmlentities($data['doctorName']);?>'s Profile</h4>
-<p><b>Profile Reg. Date: </b><?php echo htmlentities($data['creationDate']);?></p>
-<?php if($data['updationDate']){?>
-<p><b>Profile Last Updation Date: </b><?php echo htmlentities($data['updationDate']);?></p>
-<?php } ?>
+<h4><?php echo Path::h($doc->doctorName);?>'s Profile</h4>
+<p><b>Profile Reg. Date: </b><?php Path::h($doc->creationDate);?></p>
+<?php if($doc->updationDate){?>
+<p><b>Profile Last Updation Date: </b><?php echo $doc->updationDate;?></p>
+<?php //} ?>
 <hr />
 													<form role="form" name="adddoc" method="post" onSubmit="return valid();">
 														<div class="form-group">
 															<label for="DoctorSpecialization">
 																Doctor Specialization
 															</label>
-							<select name="Doctorspecialization" class="form-control" required="required">
-					<option value="<?php echo htmlentities($data['specilization']);?>">
-					<?php echo htmlentities($data['specilization']);?></option>
-<?php $ret=mysqli_query($con,"select * from doctorspecilization");
-while($row=mysqli_fetch_array($ret))
+							<select name="Doctor[specilization]" class="form-control" required="required">
+					<option value="<?php echo $doc->specilization;?>">
+					<?php echo $doc->specilization;?></option>
+<?php //$ret=mysqli_query($con,"select * from doctorspecilization");
+//while($row=mysqli_fetch_array($ret))
+$special = \Src\models\Specialization::find_all();
+foreach ($special as $spec)
 {
 ?>
-																<option value="<?php echo htmlentities($row['specilization']);?>">
-																	<?php echo htmlentities($row['specilization']);?>
+																<option value="<?php echo $spec->specilization;?>">
+																	<?php echo $spec->specilization;?>
 																</option>
 																<?php } ?>
 																
@@ -123,7 +128,7 @@ while($row=mysqli_fetch_array($ret))
 															<label for="doctorname">
 																 Doctor Name
 															</label>
-	<input type="text" name="docname" class="form-control" value="<?php echo htmlentities($data['doctorName']);?>" >
+	<input type="text" name="Doctor[doctorName]" class="form-control" value="<?php echo htmlentities($doc->doctorName);?>" >
 														</div>
 
 
@@ -131,27 +136,27 @@ while($row=mysqli_fetch_array($ret))
 															<label for="address">
 																 Doctor Clinic Address
 															</label>
-					<textarea name="clinicaddress" class="form-control"><?php echo htmlentities($data['address']);?></textarea>
+					<textarea name="Doctor[address]" class="form-control"><?php echo htmlentities($doc->address);?></textarea>
 														</div>
 <div class="form-group">
 															<label for="fess">
 																 Doctor Consultancy Fees
 															</label>
-		<input type="text" name="docfees" class="form-control" required="required"  value="<?php echo htmlentities($data['docFees']);?>" >
+		<input type="text" name="Doctor[docFees]" class="form-control" required="required"  value="<?php echo htmlentities($doc->docFees);?>" >
 														</div>
 	
 <div class="form-group">
 									<label for="fess">
 																 Doctor Contact no
 															</label>
-					<input type="text" name="doccontact" class="form-control" required="required"  value="<?php echo htmlentities($data['contactno']);?>">
+					<input type="text" name="Doctor[contactno]" class="form-control" required="required"  value="<?php echo htmlentities($doc->contactno);?>">
 														</div>
 
 <div class="form-group">
 									<label for="fess">
 																 Doctor Email
 															</label>
-					<input type="email" name="docemail" class="form-control"  readonly="readonly"  value="<?php echo htmlentities($data['docEmail']);?>">
+					<input type="email" name="Doctor[docEmail]" class="form-control"  readonly="readonly"  value="<?php echo htmlentities($doc->docEmail);?>">
 														</div>
 
 

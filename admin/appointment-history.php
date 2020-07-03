@@ -1,9 +1,12 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$i = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,8 +67,8 @@ include('include/checklogin.php');
 									<div class="row">
 								<div class="col-md-12">
 									
-									<p style="color:red;"><?php echo htmlentities($_SESSION['msg']);?>
-								<?php echo htmlentities($_SESSION['msg']="");?></p>	
+									<p style="color:red;"><?php //echo htmlentities($_SESSION['msg']);?>
+								<?php //echo htmlentities($_SESSION['msg']="");?></p>
 									<table class="table table-hover" id="sample-table-1">
 										<thead>
 											<tr>
@@ -83,9 +86,8 @@ include('include/checklogin.php');
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select doctors.doctorName as docname,users.fullName as pname,appointment.*  from appointment join doctors on doctors.id=appointment.doctorId join users on users.id=appointment.userId ");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
+$stmt = $connection->query("select doctors.doctorName as docname,users.fullName as pname,appointment.*  from appointment join doctors on doctors.id=appointment.doctorId join users on users.id=appointment.userId ");
+while($row = $stmt->fetch())
 {
 ?>
 

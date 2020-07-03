@@ -141,17 +141,6 @@ class Patient extends DatabaseObject
         if ($count > 0) return true; else return false;
     }
 
-    public static function select_id($email)
-    {
-        $id = '';
-        $sql = "SELECT id FROM " . static::$table_name . " WHERE email='" . $email . "'";
-        $stmt = self::$database->query($sql);
-        while ($data = $stmt->fetch()){
-            $id = $data['id'] ?? '';
-        }
-        return $id;
-    }
-
     public static function use_for_ip($email){
         $sql = "SELECT * FROM users WHERE email=:email LIMIT 1";
         $stmt = self::$database->prepare($sql);

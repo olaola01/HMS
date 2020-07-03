@@ -1,22 +1,46 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
-//updating Admin Remark
-if(isset($_POST['update']))
-		  {
-$qid=intval($_GET['id']);
-$adminremark=$_POST['adminremark'];
-$isread=1;
-$query=mysqli_query($con,"update tblcontactus set  AdminRemark='$adminremark',IsRead='$isread' where id='$qid'");
-if($query){
-echo "<script>alert('Admin Remark updated successfully.');</script>";
-echo "<script>window.location.href ='read-query.php'</script>";
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+use Src\models\Contact;
+use Src\helper\Notification;
+
+$id = $_GET['id'] ?? Path::redirect_to(Path::url_for('/admin/unread-queries.php'));
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+$i = 0;
+if (isset($_POST['update'])){
+    $adminremark = $_POST['adminremark'];
+    $isread = 1;
+    $stmt = $connection->prepare("UPDATE tblcontactus SET AdminRemark='$adminremark', IsRead='$isread' WHERE id='$id'");
+    if ($stmt->execute()){
+        echo "<script>alert('Admin Remark updated successfully.');</script>";
+        echo "<script>window.location.href ='read-query.php'</script>";
+    }
 }
-		  }
+//session_start();
+////error_reporting(0);
+//include('include/config.php');
+//include('include/checklogin.php');
+////check_login();
+//
+////updating Admin Remark
+//if(isset($_POST['update']))
+//		  {
+//$qid=intval($_GET['id']);
+//$adminremark=$_POST['adminremark'];
+//$isread=1;
+//$query=mysqli_query($con,"update tblcontactus set  AdminRemark='$adminremark',IsRead='$isread' where id='$qid'");
+//if($query){
+//echo "<script>alert('Admin Remark updated successfully.');</script>";
+//echo "<script>window.location.href ='read-query.php'</script>";
+//}
+//		  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,8 +68,8 @@ echo "<script>window.location.href ='read-query.php'</script>";
 		<link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/admin/sidebar.php')?>
 			<div class="app-content">
 				
 						<?php include('include/header.php');?>
@@ -81,32 +105,31 @@ echo "<script>window.location.href ='read-query.php'</script>";
 		
 										<tbody>
 <?php
-$qid=intval($_GET['id']);
-$sql=mysqli_query($con,"select * from tblcontactus where id='$qid'");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+$sql = "SELECT * FROM tblcontactus WHERE id ='" . $id . "'";
+$contact = Contact::find_by_sql($sql);
+//$contact = Contact::idd($id);
+foreach ($contact as $con) {
 ?>
 
 											<tr>
 												<th>Full Name</th>
-												<td><?php echo $row['fullname'];?></td>
+												<td><?php echo Path::h($con->fullname);?></td>
 											</tr>
 
 											<tr>
 												<th>Email Id</th>
-												<td><?php echo $row['email'];?></td>
+												<td><?php echo Path::h($con->email);?></td>
 											</tr>
 											<tr>
 												<th>Conatact Numner</th>
-												<td><?php echo $row['contactno'];?></td>
+												<td><?php echo Path::h($con->contactno);?></td>
 											</tr>
 											<tr>
 												<th>Message</th>
-												<td><?php echo $row['message'];?></td>
+												<td><?php echo Path::h($con->message);?></td>
 												</tr>
 
-<?php if($row['AdminRemark']==""){?>	
+<?php if($con->AdminRemark ==""){?>
 <form name="query" method="post">
 	<tr>
 												<th>Admin Remark</th>
@@ -127,12 +150,12 @@ while($row=mysqli_fetch_array($sql))
 	
 	<tr>
 												<th>Admin Remark</th>
-												<td><?php echo $row['AdminRemark'];?></td>
+												<td><?php echo $con->AdminRemark;?></td>
 												</tr>
 
 <tr>
 												<th>Last Updatation Date</th>
-												<td><?php echo $row['LastupdationDate'];?></td>
+												<td><?php echo $con->LastupdationDate;?></td>
 												</tr>
 											
 											<?php 

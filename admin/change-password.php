@@ -1,24 +1,41 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
-date_default_timezone_set('Asia/Kolkata');// change according timezone
+include "../vendor/autoload.php";
+include "../src/initialize.php";
+
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+use Src\helper\Notification;
+
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+
+$error = '';
+date_default_timezone_set('Africa/Lagos');// change according timezone
 $currentTime = date( 'd-m-Y h:i:s A', time () );
-if(isset($_POST['submit']))
+if(Path::is_post_request())
 {
-$sql=mysqli_query($con,"SELECT password FROM  admin where password='".$_POST['cpass']."' && username='".$_SESSION['login']."'");
-$num=mysqli_fetch_array($sql);
-if($num>0)
-{
- $con=mysqli_query($con,"update admin set password='".$_POST['npass']."', updationDate='$currentTime' where username='".$_SESSION['login']."'");
-$_SESSION['msg1']="Password Changed Successfully !!";
-}
-else
-{
-$_SESSION['msg1']="Old Password not match !!";
-}
+    $new_pass = $_POST['npass'];
+    $old_pass = $_POST['cpass'];
+    $con_pass = $_POST['cfpass'];
+    $md5_oldpass = md5($old_pass);
+
+    $stmt =$connection->query("SELECT * FROM  doctors WHERE id='".$admin_id."'");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($md5_oldpass == $doctor->already_stored()){
+        if($new_pass == $con_pass){
+            $password = md5($new_pass);
+            $stmt = $connection->prepare("UPDATE doctors SET password='$password', updationDate='$currentTime' WHERE id='$doctor_id'");
+            if ($stmt->execute()){
+                Notification::message('Password Updated succesfully');
+            }else{
+                $error = "Password Update failed";
+            }
+        }
+    }else{
+        $error = "Incorrect Password";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -48,25 +65,25 @@ $_SESSION['msg1']="Old Password not match !!";
 <script type="text/javascript">
 function valid()
 {
-if(document.chngpwd.cpass.value=="")
+if(document.chngpwd.cpass.value==="")
 {
 alert("Current Password Filed is Empty !!");
 document.chngpwd.cpass.focus();
 return false;
 }
-else if(document.chngpwd.npass.value=="")
+else if(document.chngpwd.npass.value==="")
 {
 alert("New Password Filed is Empty !!");
 document.chngpwd.npass.focus();
 return false;
 }
-else if(document.chngpwd.cfpass.value=="")
+else if(document.chngpwd.cfpass.value==="")
 {
 alert("Confirm Password Filed is Empty !!");
 document.chngpwd.cfpass.focus();
 return false;
 }
-else if(document.chngpwd.npass.value!= document.chngpwd.cfpass.value)
+else if(document.chngpwd.npass.value!== document.chngpwd.cfpass.value)
 {
 alert("Password and Confirm Password Field do not match  !!");
 document.chngpwd.cfpass.focus();
@@ -78,12 +95,11 @@ return true;
 
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
-			<div class="app-content">
-				
-						<?php include('include/header.php');?>
-		
+		<div id="app">
+            <?php include (SHARED_PATH . '/admin/sidebar.php')?>
+            <div class="app-content">
+
+                <?php include (SHARED_PATH . '/admin/header.php')?>
 				</header>
 				<!-- end: TOP NAVBAR -->
 				<div class="main-content" >
@@ -117,8 +133,8 @@ return true;
 													<h5 class="panel-title">Change Password</h5>
 												</div>
 												<div class="panel-body">
-								<p style="color:red;"><?php echo htmlentities($_SESSION['msg1']);?>
-								<?php echo htmlentities($_SESSION['msg1']="");?></p>	
+                                                    <p style="color:red;"><?php echo Error::customized_display_error($error);?>
+                                                        <?php echo Notification::display_message(); ?></p>
 													<form role="form" name="chngpwd" method="post" onSubmit="return valid();">
 														<div class="form-group">
 															<label for="exampleInputEmail1">

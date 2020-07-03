@@ -3,9 +3,10 @@ include "../vendor/autoload.php";
 include "../src/initialize.php";
 
 use Src\helper\Error;
-use Src\models\Doctor;
 use Src\helper\Path;
+use Src\models\Doctor;
 use Src\helper\Notification;
+use Src\models\Specialization;
 
 Error::require_doctor_login();
 $doctor_id = $doctor_session->get_session_id();
@@ -99,14 +100,13 @@ if (Path::is_post_request()){
 							<select name="Doctor[specilization]" class="form-control" required="required">
 					<option value="<?php echo Path::h($doctor->specilization);?>">
 					<?php echo Path::h($doctor->specilization);?></option>
-<?php $stmt = $connection->query("select * from doctorspecilization");
-//$row = $stmt->fetch(PDO::FETCH_ASSOC);
-while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-$specilization = $data['specilization'];
+<?php
+$special = Specialization::find_all();
+foreach ($special as $as){
 
 ?>
-																<option value="<?php echo Path::h($specilization); ?>">
-																	<?php echo Path::h($specilization);?>
+																<option value="<?php echo Path::h($as->specilization); ?>">
+																	<?php echo Path::h($as->specilization);?>
 																</option>
 																<?php } ?>
 

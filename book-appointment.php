@@ -7,6 +7,7 @@ use Src\helper\Error;
 use Src\models\Patient;
 use Src\models\BookAppointment;
 use Src\helper\Notification;
+use Src\models\Specialization;
 
 $error = '';
 Error::require_user_login();
@@ -140,14 +141,11 @@ function getfee(val) {
 							<select name="Doctorspecialization" class="form-control" onChange="getdoctor(this.value);" required="required">
 																<option value="">Select Specialization</option>
 <?php
-$stmt = "SELECT * FROM doctorspecilization";
-$stmt = $connection->query($stmt);
-while ($data = $stmt->fetch()) {
-    $special = $data['specilization'];
-
+$special = Specialization::find_all();
+foreach ($special as $as){
 ?>
-																<option value="<?php echo Path::h($special);?>">
-																	<?php echo Path::h($special);?>
+																<option value="<?php echo Path::h($as->specilization);?>">
+																	<?php echo Path::h($as->specilization);?>
 																</option>
 																<?php } ?>
 																

@@ -1,17 +1,27 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
+use Src\helper\Error;
+use Src\helper\Path;
+use Src\models\Contact;
 
-if(isset($_GET['del']))
-		  {
-		          mysqli_query($con,"delete from doctors where id = '".$_GET['id']."'");
-                  $_SESSION['msg']="data deleted !!";
-		  }
-?>
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$i = 0;
+//session_start();
+////error_reporting(0);
+//include('include/config.php');
+//include('include/checklogin.php');
+////check_login();
+//
+//
+//if(isset($_GET['del']))
+//		  {
+//		          mysqli_query($con,"delete from doctors where id = '".$_GET['id']."'");
+//                  $_SESSION['msg']="data deleted !!";
+//		  }
+//?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -38,8 +48,8 @@ if(isset($_GET['del']))
 		<link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
 	</head>
 	<body>
-		<div id="app">		
-<?php include('include/sidebar.php');?>
+		<div id="app">
+            <?php include (SHARED_PATH . '/admin/sidebar.php')?>
 			<div class="app-content">
 				
 						<?php include('include/header.php');?>
@@ -85,22 +95,28 @@ if(isset($_GET['del']))
 										</thead>
 										<tbody>
 <?php
-$sql=mysqli_query($con,"select * from tblcontactus where IsRead is null");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+$sql = "SELECT * FROM tblcontactus WHERE IsRead is null";
+$stmt = $connection->query($sql);
+  while ($data = $stmt->fetch()){
+      $id = $data['id'];
+      $fullname = $data['fullname'];
+      $email = $data['email'];
+      $contactno = $data['contactno'];
+      $message = $data['message'];
 ?>
 
 											<tr>
-												<td class="center"><?php echo $cnt;?>.</td>
-												<td class="hidden-xs"><?php echo $row['fullname'];?></td>
-												<td><?php echo $row['email'];?></td>
-												<td><?php echo $row['contactno'];?></td>
-												<td><?php echo $row['message'];?></td>
+                                                <td class="center"><?php echo $i++;?>.</td>
+                                                <td class="hidden-xs"><?php echo Path::h($fullname);?></td>
+                                                <td><?php echo Path::h($email);?></td>
+                                                <td><?php echo Path::h($contactno);?></td>
+                                                <td><?php echo Path::h($message);?></td>
 												
 												<td >
 												<div class="visible-md visible-lg hidden-sm hidden-xs">
-							<a href="query-details.php?id=<?php echo $row['id'];?>" class="btn btn-transparent btn-lg" title="View Details"><i class="fa fa-file"></i></a>
+                                                    <a href="<?php echo Path::url_for("admin/query-details.php?id=" . Path::h(Path::u($id)));?>" class="btn btn-transparent btn-xs" tooltip-placement="top" tooltip="Edit"><i class="fa fa-pencil"></i></a>
+
+<!--                                                    <a href="query-details.php?id=--><?php //echo $row['id'];?><!--" class="btn btn-transparent btn-lg" title="View Details"><i class="fa fa-file"></i></a>-->
 												</div>
 												<div class="visible-xs visible-sm hidden-md hidden-lg">
 													<div class="btn-group" dropdown is-open="status.isopen">
@@ -129,7 +145,7 @@ while($row=mysqli_fetch_array($sql))
 											</tr>
 											
 											<?php 
-$cnt=$cnt+1;
+//$cnt=$cnt+1;
 											 }?>
 											
 											

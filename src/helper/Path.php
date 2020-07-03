@@ -25,6 +25,10 @@ class Path
         return $_SERVER['REQUEST_METHOD'] == 'POST';
     }
 
+    public static function is_get_request() {
+        return $_SERVER['REQUEST_METHOD'] == 'GET';
+    }
+
     public static function h($string="") {
         return htmlspecialchars($string);
     }

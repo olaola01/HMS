@@ -51,6 +51,16 @@ class DatabaseObject
         }
     }
 
+    public static function find_all_by_id($id){
+        $sql = "SELECT * FROM " . static::$table_name . " WHERE $id='" . $id . "' ORDER BY id DESC";
+        return self::find_by_sql($sql);
+    }
+
+//    public static function idd($id){
+//        $sql = "SELECT * FROM " . static::$table_name . " WHERE $id='" . $id . "'";
+//        return self::find_by_sql($sql);
+//    }
+
     public static function count_all(){
         $sql = "SELECT * FROM " . static::$table_name;
         $stmt = self::$database->query($sql);

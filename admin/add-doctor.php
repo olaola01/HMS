@@ -1,26 +1,32 @@
 <?php
-session_start();
-//error_reporting(0);
-include('include/config.php');
-include('include/checklogin.php');
-//check_login();
+include "../vendor/autoload.php";
+include "../src/initialize.php";
 
-if(isset($_POST['submit']))
-{	$docspecialization=$_POST['Doctorspecialization'];
-$docname=$_POST['docname'];
-$docaddress=$_POST['clinicaddress'];
-$docfees=$_POST['docfees'];
-$doccontactno=$_POST['doccontact'];
-$docemail=$_POST['docemail'];
-$password=md5($_POST['npass']);
-$sql=mysqli_query($con,"insert into doctors(specilization,doctorName,address,docFees,contactno,docEmail,password) values('$docspecialization','$docname','$docaddress','$docfees','$doccontactno','$docemail','$password')");
-if($sql)
-{
-echo "<script>alert('Doctor info added Successfully');</script>";
-header('location:manage-doctors.php');
+use Src\helper\Error;
+use Src\models\Admin;
+use Src\helper\Path;
+use Src\models\Doctor;
+use Src\models\Specialization;
+use Src\helper\Notification;
 
+$error = '';
+Error::require_admin_login();
+$admin_id = $admin_session->get_session_id();
+$admin = Admin::find_by_id($admin_id);
+$special = Specialization::find_all();
+
+if (Path::is_post_request()) {
+    $args = $_POST['Doctor'];
+    $doctor = new Doctor($args);
+    $result = $doctor->save();
+    if ($result) {
+        Notification::message('Doctor added successfully');
+        Path::redirect_to(Path::url_for('admin/add-doctor.php'));
+    }else {
+        $error = "Something went wrong";
+    }
 }
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +55,7 @@ header('location:manage-doctors.php');
 <script type="text/javascript">
 function valid()
 {
- if(document.adddoc.npass.value!= document.adddoc.cfpass.value)
+ if(document.adddoc.npass.value!== document.adddoc.cfpass.value)
 {
 alert("Password and Confirm Password Field do not match  !!");
 document.adddoc.cfpass.focus();
@@ -91,6 +97,7 @@ error:function (){}
 							<div class="row">
 								<div class="col-sm-8">
 									<h1 class="mainTitle">Admin | Add Doctor</h1>
+
 																	</div>
 								<ol class="breadcrumb">
 									<li>
@@ -113,6 +120,8 @@ error:function (){}
 											<div class="panel panel-white">
 												<div class="panel-heading">
 													<h5 class="panel-title">Add Doctor</h5>
+                                                    <?php echo Notification::display_message();?>
+                                                    <?php echo Error::customized_display_error($error);?>
 												</div>
 												<div class="panel-body">
 									
@@ -121,17 +130,16 @@ error:function (){}
 															<label for="DoctorSpecialization">
 																Doctor Specialization
 															</label>
-							<select name="Doctorspecialization" class="form-control" required="true">
+							<select name="Doctor[specilization]" class="form-control" required="true">
 																<option value="">Select Specialization</option>
-<?php $ret=mysqli_query($con,"select * from doctorspecilization");
-while($row=mysqli_fetch_array($ret))
-{
+<?php
+foreach ($special as $spec) {
 ?>
-																<option value="<?php echo htmlentities($row['specilization']);?>">
-																	<?php echo htmlentities($row['specilization']);?>
+																<option value="<?php echo Path::h($spec->specilization);?>">
+																	<?php echo Path::h($spec->specilization); ?>
 																</option>
+
 																<?php } ?>
-																
 															</select>
 														</div>
 
@@ -139,7 +147,7 @@ while($row=mysqli_fetch_array($ret))
 															<label for="doctorname">
 																 Doctor Name
 															</label>
-					<input type="text" name="docname" class="form-control"  placeholder="Enter Doctor Name" required="true">
+					<input type="text" name="Doctor[doctorName]" class="form-control"  placeholder="Enter Doctor Name" required="true">
 														</div>
 
 
@@ -147,27 +155,27 @@ while($row=mysqli_fetch_array($ret))
 															<label for="address">
 																 Doctor Clinic Address
 															</label>
-					<textarea name="clinicaddress" class="form-control"  placeholder="Enter Doctor Clinic Address" required="true"></textarea>
+					<textarea name="Doctor[address]" class="form-control"  placeholder="Enter Doctor Clinic Address" required="true"></textarea>
 														</div>
 <div class="form-group">
 															<label for="fess">
 																 Doctor Consultancy Fees
 															</label>
-					<input type="text" name="docfees" class="form-control"  placeholder="Enter Doctor Consultancy Fees" required="true">
+					<input type="text" name="Doctor[docFees]" class="form-control"  placeholder="Enter Doctor Consultancy Fees" required="true">
 														</div>
 	
 <div class="form-group">
 									<label for="fess">
 																 Doctor Contact no
 															</label>
-					<input type="text" name="doccontact" class="form-control"  placeholder="Enter Doctor Contact no" required="true">
+					<input type="text" name="Doctor[contactno]" class="form-control"  placeholder="Enter Doctor Contact no" required="true">
 														</div>
 
 <div class="form-group">
 									<label for="fess">
 																 Doctor Email
 															</label>
-<input type="email" id="docemail" name="docemail" class="form-control"  placeholder="Enter Doctor Email id" required="true" onBlur="checkemailAvailability()">
+<input type="email" id="docemail" name="Doctor[docEmail]" class="form-control"  placeholder="Enter Doctor Email id" required="true" onBlur="checkemailAvailability()">
 <span id="email-availability-status"></span>
 </div>
 
@@ -178,14 +186,14 @@ while($row=mysqli_fetch_array($ret))
 															<label for="exampleInputPassword1">
 																 Password
 															</label>
-					<input type="password" name="npass" class="form-control"  placeholder="New Password" required="required">
+					<input type="password" name="Doctor[password]" class="form-control"  placeholder="New Password" required="required">
 														</div>
 														
 <div class="form-group">
 															<label for="exampleInputPassword2">
 																Confirm Password
 															</label>
-									<input type="password" name="cfpass" class="form-control"  placeholder="Confirm Password" required="required">
+									<input type="password" name="Doctor[confirm_password]" class="form-control"  placeholder="Confirm Password" required="required">
 														</div>
 														
 														
